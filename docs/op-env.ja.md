@@ -46,6 +46,22 @@ framework 自身が CI-mode branch を提供できる場合、この pattern は
 
 `OP()->isCI()` を、意味のある contract check を skip するために使わないでください。検査対象 behavior を repeatable にし、その安定した結果を通常の CI config で確認するために使ってください。
 
+## `isHttp()`
+
+`isHttp()` は、現在の request が HTTP request かどうかを判定します。
+
+現行実装は次を確認します。
+
+```php
+isset($_SERVER['SERVER_PROTOCOL']) and strpos($_SERVER['SERVER_PROTOCOL'], 'HTTP/') === 0
+```
+
+以前の実装は `$_SERVER['SERVER_NAME']` を確認していましたが、この値は server name accessor の input であり、request が HTTP かどうかを示す protocol-level signal ではありません。
+
+現行挙動は、Apache, Nginx, LiteSpeed, PHP built-in web server などの主要 web server environment を対象に、`SERVER_PROTOCOL` を使う方針です。
+
+`SERVER_PROTOCOL` が存在しない、または `HTTP/` で始まらない場合、`isHttp()` は `false` を返します。
+
 ## `ServerName()`
 
 `ServerName()` は `$_SERVER['SERVER_NAME']` を安全に返します。

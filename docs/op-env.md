@@ -46,6 +46,22 @@ This can replace an external stub class when the framework itself can provide th
 
 Do not use `OP()->isCI()` to skip meaningful contract checks. Use it to make inspected behavior repeatable, then verify the stable result through normal CI config.
 
+## `isHttp()`
+
+`isHttp()` determines whether the current request is an HTTP request.
+
+The current implementation checks:
+
+```php
+isset($_SERVER['SERVER_PROTOCOL']) and strpos($_SERVER['SERVER_PROTOCOL'], 'HTTP/') === 0
+```
+
+The previous implementation checked `$_SERVER['SERVER_NAME']`, but that value is a server name accessor input, not the protocol-level signal for whether the request is HTTP.
+
+The current behavior intentionally uses `SERVER_PROTOCOL` because the framework targets major web server environments such as Apache, Nginx, LiteSpeed, and the PHP built-in web server.
+
+If `SERVER_PROTOCOL` is missing or does not start with `HTTP/`, `isHttp()` returns `false`.
+
 ## `ServerName()`
 
 `ServerName()` safely returns `$_SERVER['SERVER_NAME']`.
