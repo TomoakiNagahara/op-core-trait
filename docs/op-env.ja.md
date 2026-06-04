@@ -10,6 +10,7 @@
 - `isHTTPs()`
 - `isLocalhost()`
 - `isAdmin()`
+- `ServerName()`
 - `MIME()`
 - `Request()`
 - `AppID()`
@@ -44,6 +45,30 @@ class を class-based CI に残すべきだが、一部の behavior が次のよ
 framework 自身が CI-mode branch を提供できる場合、この pattern は外部 stub class の代替になります。
 
 `OP()->isCI()` を、意味のある contract check を skip するために使わないでください。検査対象 behavior を repeatable にし、その安定した結果を通常の CI config で確認するために使ってください。
+
+## `ServerName()`
+
+`ServerName()` は `$_SERVER['SERVER_NAME']` を安全に返します。
+
+現行実装の owner は次です。
+
+- `asset/core/trait/OP_ENV.php`
+
+目的は、caller が `$_SERVER` を直接触らずに server name を読めるようにすることです。
+
+現行挙動は次です。
+
+- `$_SERVER['SERVER_NAME']` が存在しない場合は `null` を返す
+- validation の前に前後の whitespace を trim する
+- trim 後の値が empty の場合は `null` を返す
+- control character, whitespace, DEL, `/` を含む値を拒否する
+- validation 済みの server name を `string` として返す
+
+invalid value は exception ではなく `null` を返します。
+
+invalid value が見つかった場合、`ServerName()` は debug visibility のために `D("Illegal server name: ...")` を呼びます。ただし CI 中は、CI inspection の結果を deterministic に保つため、`OP()->isCI()` でその `D()` output を抑制します。
+
+`ServerName()` は raw な `SERVER_NAME` 側の environment accessor です。`asset/config/server.php` の override behavior は適用せず、canonical application host も決定しません。
 
 ## `isAdmin()`
 

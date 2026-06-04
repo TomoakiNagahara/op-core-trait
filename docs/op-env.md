@@ -10,6 +10,7 @@
 - `isHTTPs()`
 - `isLocalhost()`
 - `isAdmin()`
+- `ServerName()`
 - `MIME()`
 - `Request()`
 - `AppID()`
@@ -44,6 +45,30 @@ Use this pattern when a class should remain in class-based CI but part of its be
 This can replace an external stub class when the framework itself can provide the CI-mode branch.
 
 Do not use `OP()->isCI()` to skip meaningful contract checks. Use it to make inspected behavior repeatable, then verify the stable result through normal CI config.
+
+## `ServerName()`
+
+`ServerName()` safely returns `$_SERVER['SERVER_NAME']`.
+
+The current implementation owner is:
+
+- `asset/core/trait/OP_ENV.php`
+
+The purpose is to let callers read the server name without touching `$_SERVER` directly.
+
+Current behavior:
+
+- if `$_SERVER['SERVER_NAME']` is missing, returns `null`
+- trims surrounding whitespace before validation
+- if the trimmed value is empty, returns `null`
+- rejects values containing control characters, whitespace, DEL, or `/`
+- returns the validated server name as `string`
+
+Invalid values return `null` instead of throwing.
+
+When an invalid value is found, `ServerName()` calls `D("Illegal server name: ...")` for debug visibility. During CI, that `D()` output is suppressed with `OP()->isCI()` so the method remains deterministic under CI inspection.
+
+`ServerName()` is an environment accessor for the raw `SERVER_NAME` side. It does not apply `asset/config/server.php` override behavior and does not decide the canonical application host.
 
 ## `isAdmin()`
 
